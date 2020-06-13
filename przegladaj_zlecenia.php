@@ -1,20 +1,20 @@
 ﻿<?php 
 session_start(); if(empty($_SESSION)) header("Location: ../login.php"); if($_SESSION['rola'] == 'admin') : 
 require_once('../connect.php'); 
-$pracownicy = mysql_query("Select id_rezerwacji, marka, model ,l.imie as imie_pracownika,l.nazwisko as nazwisko_pracownika,data,godzina,data_dodania
-,u.imie,u.nazwisko from pracownicy l,rezerwacje r,users u where l.id_pracownika = r.id_pracownika and u.id = id_klienta") 
-or die ('Nie udalo się pobrać rezerwacji');
+$pracownicy = mysql_query("SELECT a.id_zlec, a.stan, a.opis, a.data_przyjecia, u.imie, u.nazwisko, l.imie as imie_pracownika, l.nazwisko as nazwisko_pracownika
+FROM stan_uslug a, pracownicy l, users u
+WHERE a.id_pracownika = l.id_pracownika
+AND u.id = a.id_klienta") 
+or die ('Nie udalo się pobrać zleceń');
 ?>
 <!DOCTYPE HTML>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title> WORD Przemyśl</title>
-
-
+<title>WORD Przemyśl </title>
             <script type = "text/javascript" src="http://code.jquery.com/jquery-1.10.1.min.js" ></script>
             <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js" ></script>
-             <script type = "text/javascript" src = "../bootstrap/DT_bootstrap.js"  ></script>
+            <script type = "text/javascript" src = "../bootstrap/DT_bootstrap.js"  ></script>
             <script type = "text/javascript" charset = "utf-8" language = "javascript" src = "../bootstrap/jquery.dataTables.js" ></script>
  
             <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" >
@@ -30,14 +30,13 @@ $(function() {
 			$.ajax({
   			type: "POST",
   			url: "../ajax.php",
-  			data: { id: $(this).attr('name'),funkcja: 'usun_rez' }
+  			data: { id_zlec: $(this).attr('name'),funkcja: 'usun_zlec' }
 			}).done(function() {
   			location.reload();
 		});
 		}
 		});	
 });
-
 
 $(document).ready(function() {
     $('#tab').dataTable( {
@@ -51,6 +50,8 @@ $(document).ready(function() {
 
 
 } );
+
+
 </script>
 <style type="text/css">
 body {
@@ -81,11 +82,11 @@ table.table thead .sorting_desc { background: url('../images/sort_desc.png') no-
 table.table thead .sorting_asc_disabled { background: url('../images/sort_asc_disabled.png') no-repeat center right; }
 table.table thead .sorting_desc_disabled { background: url('../images/sort_desc_disabled.png') no-repeat center right; }
 
+
 </style>
 </head>
 <body>
-    
-        <div class="masthead2">
+<div class="masthead2">
                 <img src="../images/leftbox-logo.png" class="logo">
                 <div class ="if_logged">  
                     <?php
@@ -95,54 +96,49 @@ table.table thead .sorting_desc_disabled { background: url('../images/sort_desc_
                     }
                     ?>
                 </div>
-    </div>
-                <div class="masthead">
-<ul class="nav nav-justified">
-    <li><a href="../index.php">Strona główna</a></li>
-    <li><a href="index.php">Rezerwacje</a></li>
-    <li><a href="pracownicy.php">Pojazdy</a></li>
-    <li><a href="klienci.php">Klienci</a></li>
-    <li><a href="przegladaj_zlecenia.php">Inne</a></li>
-    
-    
-    </ul>
+                </div>
+    <div class="masthead">
+                <ul class="nav nav-justified">
+                        <li><a href="../index.php">Strona główna</a></li>
+                        <li><a href="index.php">Rezerwacje</a></li>
+                        <li><a href="pracownicy.php">Pracownicy</a></li>
+                        <li><a href="klienci.php">Klienci</a></li>
+                        <li><a href="przegladaj_zlecenia.php">Zlecenia</a></li>
+                        <li><a href="dodaj_usluge.php">Dodaj zlecenie</a></li>
+                    </ul>
 </div>
-<div class="container" id="rezerwacje" style="margin-bottom: 10px; margin-top: 30px;">
-    
+
+<div id="rezerwacje" style="margin-bottom: 10px; margin-top: 30px;">
 <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered" id="tab">
     <thead>
-	<tr>
-        <th>Pojazd i kategoria</th>
-        <th>Data i godzina rezerwacji</th>
-        <th>Imię i nazwisko rezerwujacego</th>
-        <th>Nazwa szkoły i telefon</th>
-        <th>Data dodania</th>
-        <th>Akcje</th>
+        
+        <td>Pracownik</td>
+        <td>Klient-Data</td>
+        <td>Stan</td>
+        <td>Data przyjecia</td>
+        <td></td>
+        
+        
 
-    </tr>
-	</thead>
-	<tbody>
-    		<?php while($row = mysql_fetch_assoc($pracownicy)) :  ?>
+    </thead>
+    <tbody>
+    <?php while($row = mysql_fetch_assoc($pracownicy)) :  ?>
         <tr>
             
             <td><?php echo $row['imie_pracownika'].' '.$row['nazwisko_pracownika'];?></td>
-            <td><?php echo $row['data'].' '.$row['godzina'];?></td>
-            <td><?php echo $row['imie'].' '.$row['nazwisko'];?></td>
-            <td><?php echo $row['marka'].' '.$row['model'];?></td>
-            <td><?php echo $row['data_dodania'];?></td>
+            <td><?php echo $row['imie'].' '.$row['nazwisko'].' '.$row['data_przyjecia'];?></td>
+            <td><?php if($row['stan']=='1'.' '.$row['data_przyjecia']){echo 'Przyjęto zlecenie';} else if($row['stan']=='2'){echo 'Zlecenie w trakcie realizacji';} else if($row['stan']=='3'){echo 'Zakończono realizację usługi. Do odbioru.';} else echo 'Coś nie tak'; ?></td>
+            
+            <td><?php echo $row['opis'];?></td>
             <?php if($_SESSION['rola'] == 'admin') :?>
-                <td><a href="edytuj_rez.php?rez=<?=$row['id_rezerwacji'];?>">Edytuj</a>
-                <a href="#" id="usun" name="<?=$row['id_rezerwacji'];?>">Usun</a></td>
+                <td><a href="edytuj_zlec.php?zlec=<?=$row['id_zlec'];?>">Edytuj</a>
+                <a href="" id="usun" name="<?=$row['id_zlec'];?>">Usun</a></td>
             <?php endif; ?>
         </tr>
     <?php endwhile;  ?>
-        
-	</tbody>
+        </tbody>
 </table>
-   </div>
-    
-    
-
+</div>
 </body>
 </html>
 <?php else : ?> <h2 style="color:#F00">Nie masz uprawnień do przegladania tej strony !!!</h2> <?php endif; ?>

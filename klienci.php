@@ -1,20 +1,14 @@
-﻿<?php 
-session_start(); if(empty($_SESSION)) header("Location: ../login.php"); if($_SESSION['rola'] == 'admin') : 
-require_once('../connect.php'); 
-$pracownicy = mysql_query("Select id_rezerwacji, marka, model ,l.imie as imie_pracownika,l.nazwisko as nazwisko_pracownika,data,godzina,data_dodania
-,u.imie,u.nazwisko from pracownicy l,rezerwacje r,users u where l.id_pracownika = r.id_pracownika and u.id = id_klienta") 
-or die ('Nie udalo się pobrać rezerwacji');
+<?php session_start(); if($_SESSION['rola'] == 'admin') : require_once('../connect.php'); 
+$pracownicy = mysql_query("SELECT * FROM users where rola = 'klient' ") or die ('Nie udalo się poberać listy klientów');
 ?>
 <!DOCTYPE HTML>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title> WORD Przemyśl</title>
-
-
+<title>WORD Przemyśl</title>
             <script type = "text/javascript" src="http://code.jquery.com/jquery-1.10.1.min.js" ></script>
             <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js" ></script>
-             <script type = "text/javascript" src = "../bootstrap/DT_bootstrap.js"  ></script>
+            <script type = "text/javascript" src = "../bootstrap/DT_bootstrap.js"  ></script>
             <script type = "text/javascript" charset = "utf-8" language = "javascript" src = "../bootstrap/jquery.dataTables.js" ></script>
  
             <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" >
@@ -25,19 +19,31 @@ or die ('Nie udalo się pobrać rezerwacji');
 <script>
 $(function() {
 	$('[id="usun"]').click(function() {
-		if(confirm('Czy jesteś pewien, że chcesz usunąć tą pozycje'))
+		if(confirm('Czy jesteś pewien, że chcesz usunąć tego klienta'))
 		{
 			$.ajax({
   			type: "POST",
   			url: "../ajax.php",
-  			data: { id: $(this).attr('name'),funkcja: 'usun_rez' }
+  			data: { id: $(this).attr('name'),funkcja: 'usun_klienta' }
 			}).done(function() {
   			location.reload();
 		});
 		}
-		});	
+		});
+                
+                
+         $('.aktywacja').click(function(){
+             var id=$(this).attr('id');
+                    $.ajax({
+  			type: "POST",
+  			url: "../ajax.php",
+  			data: { id: id, funkcja: 'aktywuj_usera' }
+			}).done(function(data) {
+                            $('#'+id).parent('td').html(data);                            
+             
+         });
 });
-
+});
 
 $(document).ready(function() {
     $('#tab').dataTable( {
@@ -51,6 +57,8 @@ $(document).ready(function() {
 
 
 } );
+
+
 </script>
 <style type="text/css">
 body {
@@ -84,10 +92,9 @@ table.table thead .sorting_desc_disabled { background: url('../images/sort_desc_
 </style>
 </head>
 <body>
-    
-        <div class="masthead2">
+<div class="masthead2">
                 <img src="../images/leftbox-logo.png" class="logo">
-                <div class ="if_logged">  
+                <div class ="if_logged">
                     <?php
                     if (isset($_SESSION['login'])) {
                         echo "zalogowany jako: " . $_SESSION['login'];
@@ -95,54 +102,46 @@ table.table thead .sorting_desc_disabled { background: url('../images/sort_desc_
                     }
                     ?>
                 </div>
-    </div>
-                <div class="masthead">
-<ul class="nav nav-justified">
-    <li><a href="../index.php">Strona główna</a></li>
+                </div>
+    <div class="masthead">
+                    <ul class="nav nav-justified">
+        <li><a href="../index.php">Strona główna</a></li>
     <li><a href="index.php">Rezerwacje</a></li>
     <li><a href="pracownicy.php">Pojazdy</a></li>
     <li><a href="klienci.php">Klienci</a></li>
-    <li><a href="przegladaj_zlecenia.php">Inne</a></li>
-    
-    
+    <li><a href="przegladaj_zlecenia.php">Zlecenia</a></li>
     </ul>
 </div>
-<div class="container" id="rezerwacje" style="margin-bottom: 10px; margin-top: 30px;">
-    
+
+<div id="rezerwacje" style="margin-bottom: 10px; margin-top: 30px;">
 <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered" id="tab">
     <thead>
-	<tr>
-        <th>Pojazd i kategoria</th>
-        <th>Data i godzina rezerwacji</th>
-        <th>Imię i nazwisko rezerwujacego</th>
-        <th>Nazwa szkoły i telefon</th>
-        <th>Data dodania</th>
-        <th>Akcje</th>
-
-    </tr>
-	</thead>
-	<tbody>
-    		<?php while($row = mysql_fetch_assoc($pracownicy)) :  ?>
+        
+        <td>Imię klienta</td>
+        <td>Nazwisko klienta</td>
+        <td>email</td>
+        <td>Uwierzytelnianie</td>
+        <td></td>
+    </thead>
+    <tbody>
+    <?php while($row = mysql_fetch_assoc($pracownicy)) :  ?>
         <tr>
             
-            <td><?php echo $row['imie_pracownika'].' '.$row['nazwisko_pracownika'];?></td>
-            <td><?php echo $row['data'].' '.$row['godzina'];?></td>
-            <td><?php echo $row['imie'].' '.$row['nazwisko'];?></td>
-            <td><?php echo $row['marka'].' '.$row['model'];?></td>
-            <td><?php echo $row['data_dodania'];?></td>
-            <?php if($_SESSION['rola'] == 'admin') :?>
-                <td><a href="edytuj_rez.php?rez=<?=$row['id_rezerwacji'];?>">Edytuj</a>
-                <a href="#" id="usun" name="<?=$row['id_rezerwacji'];?>">Usun</a></td>
-            <?php endif; ?>
+            <td><?php echo $row['imie']; ?></td>
+            <td><?php echo $row['nazwisko']; ?></td> 
+            <td><?php echo $row['login']; ?></td>          
+            <td><?php if($row['aktywny']=='0'){echo '<a id="'.$row["id"].'" class="aktywacja" href="#">Aktywuj konto!</a>'; } else {echo 'Aktywny';} ?></td><td>
+                <a href="edytuj_klienta.php?user=<?=$row['id']; ?>">Edytuj</a>
+            <a href="#" id="usun" name="<?=$row['id']; ?>">Usun</a></td>
         </tr>
     <?php endwhile;  ?>
-        
-	</tbody>
+    </tbody>
 </table>
-   </div>
-    
-    
-
+	<a href="dodaj_klienta.php">Dodaj klienta</a>
+</div>
+    <div class="footer">
+        <p>&copy; Created by Krystian Matusz 2020</p>
+      </div>
 </body>
 </html>
 <?php else : ?> <h2 style="color:#F00">Nie masz uprawnień do przegladania tej strony !!!</h2> <?php endif; ?>
