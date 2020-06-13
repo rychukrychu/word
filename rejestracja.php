@@ -30,7 +30,7 @@ if(@$_POST['lo'])
     <meta name="author" content="">
     <link rel="shortcut icon" href="../../docs-assets/ico/favicon.png">
 
-    <title>Boat Service</title>
+    <title>WORD Przemyśl</title>
             
     <link href="bootstrap/bootstrap.min.css" rel="stylesheet">
     <link href="bootstrap/signin.css" rel="stylesheet">
