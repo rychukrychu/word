@@ -5,7 +5,7 @@ if (empty($_SESSION))
     header("Location: ../login.php");
 if ($_SESSION['rola'] == 'klient') {
     require_once('../connect.php');
-    $lekarze = mysql_query("Select id_rezerwacji, marka, model, l.imie as imie_pracownika,l.nazwisko as nazwisko_pracownika,data,godzina,opis,data_dodania
+    $stan = mysql_query("Select id_rezerwacji, marka, model, l.imie as imie_pracownika,l.nazwisko as nazwisko_pracownika,data,godzina,opis,data_dodania
 ,u.imie,u.nazwisko from pracownicy l,rezerwacje r,users u where l.id_pracownika = r.id_pracownika and u.id = id_klienta
 and id_klienta = " . $_SESSION['id'] . "") or die('Nie udalo się pobrać rezerwacji');
     ?>
@@ -107,7 +107,7 @@ and id_klienta = " . $_SESSION['id'] . "") or die('Nie udalo się pobrać rezerw
 
                     </thead>
                     <tbody>
-    <?php while ($row = mysql_fetch_assoc($lekarze)) { ?>
+    <?php while ($row = mysql_fetch_assoc($stan)) { ?>
                             <tr>
                                 <td><?= $row['imie_pracownika'] . ' ' . $row['nazwisko_pracownika'] ?></td>
                                 <td><?= $row['data'].' '.$row['godzina'];?></td>
