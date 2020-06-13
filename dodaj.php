@@ -1,4 +1,4 @@
-﻿<?php require_once('../connect.php'); session_start(); if($_SESSION['rola'] == 'admin') :  ?>
+﻿<?php require_once('../connect.php'); session_start(); if($_SESSION['rola'] == 'klient') :  ?>
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -26,14 +26,14 @@ menu li {
 <div id="navi">
     <menu>
         <li><a href="../index.php">Strona główna</a></li>
-    <li><a href="index.php">Rezerwacje</a></li>
-    <li><a href="pracownicy.php">Pojazdy </a></li>
-    <li><a href="dodaj_rez.php">Dodaj rezerwacje</a></li>
+        <li><a href="index.php">Przeglądaj rezerwacje</a></li>
+        <li><a href="dodaj_rez.php">Dodaj rezerwacje</a></li>
+               <li><a href='../wyloguj.php'>Wyloguj</a></li>
     </menu>
 </div>
 <div id="rezerwacje">
 <?php 		require_once('../connect.php'); 
- if(isset($_SESSION['login'])): echo "zalogowany jako: ".$_SESSION['login']; echo "<a href='../wyloguj.php'>Wyloguj</a>"; endif; 
+ if(isset($_SESSION['login'])): echo "zalogowany jako: ".$_SESSION['login'];  endif; 
 if($_POST['co']=='dodaj_klienta')
 {
 	if(!empty($_POST['imie']) && !empty($_POST['nazwisko']) && !empty($_POST['login']) && !empty($_POST['haslo']))
@@ -50,63 +50,24 @@ if($_POST['co']=='dodaj_klienta')
 }
 if($_POST['co']=='rez')
 {
-	if(!empty($_POST['pracownik']) && !empty($_POST['data']) && !empty($_POST['godzina']) && !empty($_POST['klient']))
+	if(!empty($_POST['pracownik']) && !empty($_POST['data']) &&  !empty($_SESSION['id']))
 	{
-		$godzina=explode(':',$_POST['godziny']);
+            $godzina=explode(':',$_POST['godziny']);
             if((int)$godzina[0]<10){$godziny='0'.(string)$godzina[0];}
+			 else {$godziny=$godzina[0];}
             $czas=$godziny.':'.$godzina[1].':00';
-	//echo $_POST['pracownik'].' 	'.$_POST['data'].' '.$_POST['godziny'].' '.$_SESSION['id'];
-		$zapytanie = "Insert into rezerwacje(id_pracownika,data,godzina,id_klienta) values(".$_POST['pracownik']."
-		,'".$_POST['data']."','".$czas."',".$_SESSION['id'].")";
-		$dodaj = mysql_query($zapytanie) or die ('Nie udalo się dodać rezrewacji');
-		//if($dodaj) header("Location: index.php");
+                     
+	echo $_POST['pracownik'].' 	'.$_POST['data'].' '.$_POST['godziny'].' '.$_SESSION['id'];
+		$zapytanie = "Insert into rezerwacje(id_pracownika,data,id_klienta,marka,model,opis) values(".$_POST['pracownik']."
+		,'".$_POST['data']."',".$_SESSION['id'].",'".$_POST['marka']."','".$_POST['model']."','".$_POST['opis']."')";
+		$dodaj = mysql_query($zapytanie) or die ('Nie udalo się dodać rezerwacji');
+		if($dodaj) header("Location: index.php");
 	}
 	else
 	{
 		echo "Nie wypełniono wszystkich pól";
 	}
 }
-if($_POST['co']=='dodaj_usluge')
-    {
-    if(!empty($_POST['id_klienta']) && !empty($_POST['id_pracownika']) && !empty($_POST['stan']) && !empty($_POST['opis']))
-    {
-        
-        $zapytanie = "Insert into stan_uslug(id_klienta,id_pracownika,stan,opis,data_przyjecia) values(".$_POST['id_klienta'].",'".$_POST['id_pracownika']."','".$_POST['stan']."','".$_POST['opis']."','".date('Y-m-d')."')";
-        $dodaj = mysql_query($zapytanie) or die ('Nie udalo się dodać rezrewacji');
-        if($dodaj) header("Location: index.php");
-        else {
-            header("Location: dodaj_usluge.php");
-            
-        }
-    }
-    else echo 'uzupełnij';
-    
-    
-    }
-    
-    
-    if($_POST['co']=='admin_dodaj_rez')
-    {
-    if(!empty($_POST['klient']) && !empty($_POST['pracownik']) && !empty($_POST['data']) && !empty($_POST['godziny']))
-    {
-            $godzina=explode(':',$_POST['godziny']);
-            if((int)$godzina[0]<10){$godziny='0'.(string)$godzina[0];}
-            else {$godziny=$godzina[0];}
-            $czas=$godziny.':'.$godzina[1].':00';
-            //echo $czas;
-        $zapytanie = "Insert into rezerwacje(id_pracownika,id_klienta,data,godzina, data_dodania) values(".$_POST['pracownik'].",'".$_POST['klient']."','".$_POST['data']."','".$czas."','".date('Y-m-d H:i:s')."')";
-        $dodaj = mysql_query($zapytanie) or die ('Nie udalo się dodać rezrewacji');
-        if($dodaj) header("Location: index.php");
-        else {
-            header("Location: dodaj_rez.php");
-            
-        }
-    }
-    else echo 'uzupełnij';
-    
-    
-    }
-    
 if($_POST['co']=='prac')
 {
 	if(!empty($_POST['imie']) && !empty($_POST['nazwisko']) && !empty($_POST['dzien']) && !empty($_POST['godzina_od'])
@@ -133,10 +94,10 @@ if($_POST['co']=='prac')
 			}
 			else 
 			{
-				echo "Wybrano złe godziny pracy";
+				echo "Wybrano złe godziny ";
 			}
 		}
-		if($dodaj1 && $dodaj2) echo "Dodano pozytywnie";
+		if($dodaj1 && $dodaj2) echo "Dodano";
 		else echo "Wystąpił bląd spróbój jeszcze raz";
 	}
 	else
@@ -146,6 +107,9 @@ if($_POST['co']=='prac')
 }
 ?>
 </div>
+    <div class="footer">
+        <p>&copy; Created by Krystian Matusz 2015</p>
+      </div>
 </body>
 </html>
 <?php else : ?> <h2 style="color:#F00">Nie masz uprawnień do przegladania tej strony !!!</h2> <?php endif; ?>

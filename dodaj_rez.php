@@ -1,41 +1,28 @@
 ﻿<?php
 session_start();
-if ($_SESSION['rola'] == 'admin') :
+if ($_SESSION['rola'] == 'klient') :
     require_once('../connect.php');
-    $pracownicy = mysql_query("Select * from pracownicy") or die('Nie udalo się pobrać pracowników') or die('Nie udalo się pobrać pracowników');
+    $pracownicy = mysql_query("Select * from pracownicy") or die('Nie udalo się pobrać ');
     $klienci = mysql_query("Select id,imie,nazwisko from users where rola = 'klient'") or die('Nie udalo się pobrać klientów');
     ?>
     <!DOCTYPE HTML>
     <html>
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-            <title> WORD Przemyśl</title>
-            <link rel="stylesheet" href="../css/jquery-ui-1.8.21.custom.css">
-            <!--<link rel="stylesheet" href="../css/style.css"> -->
-            
-            <!--<script src="http://jquery-ui.googlecode.com/svn/trunk/ui/i18n/jquery.ui.datepicker-pl.js"></script> -->
-            <script src="../js/jquery.ui.core.js"></script>
-            <script src="../js/jquery.ui.widget.js"></script>
-            <script src="../js/datapicker.js"></script>
-            
-                
-                <script type = "text/javascript" src="http://code.jquery.com/jquery-1.10.1.min.js" ></script>
-             <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js" ></script>
-            <script type = "text/javascript" src = "../bootstrap/DT_bootstrap.js"  ></script>
-            <script type = "text/javascript" charset = "utf-8" language = "javascript" src = "../bootstrap/jquery.dataTables.js" ></script>
- 
+            <title>WORD Przemyśl</title>
             <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" >
             <link rel="stylesheet" href="../bootstrap/DT_bootstrap.css" >
             <link href="../bootstrap/bootstrap.css" rel="stylesheet" >
-
             <link href="../bootstrap/justified-nav.css" rel="stylesheet" >
-
-
-            <script type="text/javascript">
-                
-                
-                
-                
+            
+            <link rel="stylesheet" href="../css/jquery-ui-1.8.21.custom.css">
+            <link rel="stylesheet" href="../css/style.css">
+            <script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+            <script src="http://jquery-ui.googlecode.com/svn/trunk/ui/i18n/jquery.ui.datepicker-pl.js"></script> 
+            <script src="../js/jquery.ui.core.js"></script>
+            <script src="../js/jquery.ui.widget.js"></script>
+            <script src="../js/datapicker.js"></script>
+            <script>
                 $(function() {
                     var dni1;
                     var dni;
@@ -54,6 +41,17 @@ if ($_SESSION['rola'] == 'admin') :
                             }).done(function(data) {
                                 dni = data;
                                 data_function(dni);
+                            });
+                            
+                            
+                            
+                            $.ajax({
+                                type: "POST",
+                                url: "../ajax.php",
+                                data: {id_pracownika: $(this).val(), funkcja: 'rozklad_pracy'}
+                            }).done(function(data) {
+                                $('#rozklad_pracy').html(' ');
+                                $('#rozklad_pracy').html(data);
                             });
                         }
 
@@ -96,16 +94,15 @@ if ($_SESSION['rola'] == 'admin') :
                         var datka=data.getFullYear()+'-'+mies2+'-'+dzien2;
                         $('#data').val(datka);
                         console.log(datka);
-                        
                         console.log(dzien);
                         $.ajax({
                             type: "POST",
                             url: "../ajax.php",
                             data: {id_pracownika: $('#pracownik').val(), dzien: dzien, data: datka, funkcja: 'godziny_prac'}
                         }).done(function(data) {
-                            console.log(data);
+                             $('#godziny').html(' ');
                             $('#godziny').append(data);
-                           // $('#godziny').append('<option></option>');
+                            $('#godziny').append('<option></option>');
                         });
                     });
 
@@ -123,6 +120,8 @@ if ($_SESSION['rola'] == 'admin') :
                                 url: "../ajax.php",
                                 data: {id_pracownika: $('#pracownik').val(), dzien: $(this).val(), funkcja: 'godziny'}
                             }).done(function(data) {
+                                
+
                                 $('#godziny').html(data);
                             });
                         }
@@ -147,65 +146,77 @@ if ($_SESSION['rola'] == 'admin') :
             </style>
         </head>
         <body>
-             <div class ="masthead2">
-                    <img src="images/leftbox-logo.png" class="logo">
-                    <div class="if_logged"> 
+            <div class="container">
+                <div class="masthead2">
+               <img src="../images/leftbox-logo.png" class="logo">
+                  <div class="if_logged"> 
                     <?php
                     if (isset($_SESSION['login'])) {
                         echo "zalogowany jako: " . $_SESSION['login'];
-                        echo "<a href='wyloguj.php'> Wyloguj</a>";
-                    }
+                                            }
                     ?>
                 </div>
-                    </div>
-            <div class="masthead">
-            <div id="navi">
+               </div>
+               <div class="masthead">
                 <ul class="nav nav-justified">
                     <li><a href="../index.php">Strona główna</a></li>
-                    <li><a href="index.php">Rezerwacje</a></li>
-                    <li><a href="pracownicy.php">Pracownicy</a></li>
-                    <li><a href="klienci.php">Klienci</a></li>
-                    <li><a href="dodaj_rez.php">Dodaj rezerwacje</a></li>
+                    <li><a href="index.php">Przeglądaj rezerwacje</a></li>
+                    <li><a href="dodaj_rez.php">Dodaj rezerwację</a></li>
+                    <li><a href='../wyloguj.php'>Wyloguj</a></li>
                 </ul>
             </div>
-            </div>
-                      <div id="rezerwacje">
+            
+            <div id="rezerwacje">
+                
                 <form action="dodaj.php" method="post">
-                    <input type="hidden" name="co" value="admin_dodaj_rez" />
-                   <label for="pracownik">Wybierz Klienta</label>
-                    <select id="klient" name="klient">
-                        <option value="none"> </option>
-                        <?php while ($row1 = mysql_fetch_assoc($klienci)) : ?>
-                            <option value="<?= $row1['id'] ?>"><?= $row1['imie'] . ' ' . $row1['nazwisko'] ?></option>
-    <?php endwhile; ?>
-                    </select>
-                    
-                    <label for="pracownik">Wybierz pracownika</label>
+                    <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered" id="tab">
+                    <input type="hidden" name="co" value="rez" />
+                    <tr><td><label for="pracownik">Wybierz pojazd a pojawią się dostepne godziny</label>
                     <select id="pracownik" name="pracownik">
                         <option value="none"> </option>
                         <?php while ($row = mysql_fetch_assoc($pracownicy)) : ?>
                             <option value="<?= $row['id_pracownika'] ?>"><?= $row['imie'] . ' ' . $row['nazwisko'] ?></option>
     <?php endwhile; ?>
-                    </select>
+                    </select></td>
 
-                    <label for="data">Wybierz date</label>
-                    <input type="text" name="data" id="data" /><br>
+                    <td><label for="data">Wybierz date</label><br>
+                       <input type="text" name="data" id="data" /><br>
+                       <label for="data">Wybierz godzinę</label>
+                        <select id="godziny" name="godziny">
+                        </td>
 
 
                     
 
-                    <label for="data">Wybierz godzinę</label>
-                    <select id="godziny" name="godziny">
-                        
-                    </select>
+                    </tr>
                    <br>
-
-                    <input type="reset" value="Wyczyść" />
-                    <input type="submit" value="zapisz" />
+                   <tr>
+                       <td>
+                                           <table id="rozklad_pracy">
+                    
+                </table>
+                       </td>
+                       <td> <label for="marka">Wpisz nazwę OSK</label><br>
+                   <input type="text" name="marka" id="login" required="required"/><br></td>
+                   <td><label for="model">Podaj nr. telefonu</label><br>
+                       <input type="text" name="model" id="login" required="required"/><br></td>
+                   </tr>
+                   <tr> <td> <button class="btn btn-lg btn-success" style="width: 200px; " type="reset">Wyczyść</button></td>
+                       <td><label for="opis">Uwagi:</label><br>
+                 <textarea name="opis" id="opis" ></textarea></td>
+                       <td><button class="btn btn-lg btn-primary btn-block" style="width: 200px;" type="submit">Zapisz</button></td>
+            </tr>
+                    </table>
                 </form>
             </div>
             <div id="dane">
-            </div>
+
+            </div
+            
+            <div class="footer">
+        <p>&copy; Created by Krystian Matusz 2020</p>
+      </div>
+            
         </body>
     </html>
 <?php else : ?> <h2 style="color:#F00">Nie masz uprawnień do przegladania tej strony !!!</h2> <?php endif; ?>
