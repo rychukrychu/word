@@ -1,4 +1,4 @@
-# word
+# WORD
 Założenia projektowe
 System rezerwacji zasobów WORD Przemyśl
 Aplikacje Internetowe
